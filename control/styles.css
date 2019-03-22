@@ -1,0 +1,47 @@
+* {
+	font-family: Arial;
+}
+
+.controls {
+	justify-content: space-between;
+	display: flex;
+	align-items: flex-end;
+}
+
+.left, .right {
+	width: 170px;
+}
+
+.middle {
+	width: calc(100% - 360px);
+}
+
+button {
+	width: 80px;
+	height: 80px;
+	font-size: 65px;
+	border: 0;
+	border-radius: 25%;
+	background: #EEE;
+}
+
+button:active {
+	background: #AAA;
+}
+
+
+button#forward:active {
+	background: #00AA44;
+}
+
+button#forward {
+	background: #00FF44;
+}
+
+button#reverse:active {
+	background: #AA3300;
+}
+
+button#reverse {
+	background: #FF3300;
+}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>RC Car Controls</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="client.js"></script>
+<link rel="stylesheet" type="text/css" href="/styles.css?1">
+</head>
+<body>
+<div class="controls">
+	<div class="left">
+		<button id="left">&lt;</button>
+		<button id="right">&gt;</button>
+	</div>
+	<div class="middle">
+		<h5>Video preview</h5>
+		<img src="http://192.168.17.239:8000/stream.mjpg" width="320" height="240">
+		<p>Distance: <span id="distance"></span></p>
+	</div>
+	<div class="right">
+		<button id="forward"></button>
+		<button id="reverse"></button>
+	</div>
+</div>
+</body>
+</html>
