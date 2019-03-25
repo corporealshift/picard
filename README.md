@@ -1,5 +1,5 @@
-# piCar
-Simple RC car controls with maybe some autonomous capabilities.
+# piCarD
+(Pi Car Driver) Simple RC car controls with maybe some autonomous capabilities.
 
 # Setup
 Enable i2c and the pi camera modules using raspi-config command
