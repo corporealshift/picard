@@ -24,7 +24,7 @@ def send_distance():
     # ignore random big readings
     if d < 2000:
         wall = d < 50
-        print("w: %s tf: %s" % (wall, driver.trav_fwd))
+        print("w: %s forward?: %s" % (wall, driver.trav_fwd))
         server.send_message_to_all("distance:%f" % d)
         if wall and driver.trav_fwd == True:
             print("Should stop!")

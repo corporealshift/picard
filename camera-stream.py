@@ -8,6 +8,9 @@ import logging
 import socketserver
 from threading import Condition
 from http import server
+import sched, time
+import sqlite3
+import gpsd
 
 PAGE="""\
 <html>
@@ -81,14 +84,45 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
 
-with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
+with picamera.PiCamera(resolution='1280x720', framerate=60) as camera:
     output = StreamingOutput()
     #Uncomment the next line to change your Pi's Camera rotation (in degrees)
     #camera.rotation = 90
     camera.start_recording(output, format='mjpeg')
     try:
+        gpsd.connect()
+        conn = sqlite3.connect('photodb')
+        s = sched.scheduler(time.time, time.sleep)
+
+        def do_something(sc, camera): 
+            print("Taking photo...")
+            file_id = time.time()
+            filename = 'img-%s.jpg' % file_id
+            camera.capture('pics/%s' % filename)
+
+            # Get GPS coords + speed
+            (packet) = gpsd.get_current()
+            print(packet.position())
+            (lat, lon) = packet.position()
+            speed = packet.speed()
+            alt = packet.altitude()
+            print("Pos: %s %s, alt %s, speed %s" % (lat, lon, alt, speed,))
+            
+            # Save info to sqlite
+            cur = conn.cursor()
+            photoinfo = (file_id, filename, lat, lon, alt, file_id, 0, speed,)
+            cur.execute('INSERT INTO photos VALUES (?,?,?,?,?,?,?,?)', photoinfo)
+            cur.close()
+            conn.commit()
+
+            s.enter(5, 1, do_something, (sc, camera))
+
+        do_something(s, camera)
         address = ('', 8000)
         server = StreamingServer(address, StreamingHandler)
+        print("About to start stream")
         server.serve_forever()
+
+        s.run()
     finally:
         camera.stop_recording()

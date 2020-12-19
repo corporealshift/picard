@@ -1,4 +1,4 @@
-var socketClient = new WebSocket("ws://192.168.17.239:9001");
+var socketClient = new WebSocket("ws://192.168.1.213:9001");
 socketClient.onopen = function(evt) {
 	
 	socketClient.send("Test");
