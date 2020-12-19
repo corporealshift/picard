@@ -45,5 +45,7 @@ socketClient.onmessage = function(event) {
 		case "distance":
 			document.getElementById("distance").innerText = data[1];
 			break;
+		case "speed":
+			document.getElementById("speed").innerText = data[1];
 	}
 };

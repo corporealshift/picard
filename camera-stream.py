@@ -11,6 +11,8 @@ from http import server
 import sched, time
 import sqlite3
 import gpsd
+from threading import Thread
+from time import sleep
 
 PAGE="""\
 <html>
@@ -91,38 +93,45 @@ with picamera.PiCamera(resolution='1280x720', framerate=60) as camera:
     camera.start_recording(output, format='mjpeg')
     try:
         gpsd.connect()
-        conn = sqlite3.connect('photodb')
-        s = sched.scheduler(time.time, time.sleep)
 
-        def do_something(sc, camera): 
-            print("Taking photo...")
-            file_id = time.time()
-            filename = 'img-%s.jpg' % file_id
-            camera.capture('pics/%s' % filename)
+        def thread_photos(camera):
+            conn = sqlite3.connect('photodb')
+            s = sched.scheduler(time.time, time.sleep)
 
-            # Get GPS coords + speed
-            (packet) = gpsd.get_current()
-            print(packet.position())
-            (lat, lon) = packet.position()
-            speed = packet.speed()
-            alt = packet.altitude()
-            print("Pos: %s %s, alt %s, speed %s" % (lat, lon, alt, speed,))
-            
-            # Save info to sqlite
-            cur = conn.cursor()
-            photoinfo = (file_id, filename, lat, lon, alt, file_id, 0, speed,)
-            cur.execute('INSERT INTO photos VALUES (?,?,?,?,?,?,?,?)', photoinfo)
-            cur.close()
-            conn.commit()
+            def take_photo(sc, camera): 
+                print("Taking photo...")
+                file_id = time.time()
+                filename = 'img-%s.jpg' % file_id
+                camera.capture('pics/%s' % filename)
 
-            s.enter(5, 1, do_something, (sc, camera))
+                # Get GPS coords + speed
+                packet = gpsd.get_current()
+                print(packet.position())
+                (lat, lon) = packet.position()
+                speed = packet.speed()
+                alt = packet.altitude()
+                print("Pos: %s %s, alt %s, speed %s" % (lat, lon, alt, speed,))
+                
+                # Save info to sqlite
+                cur = conn.cursor()
+                photoinfo = (file_id, filename, lat, lon, alt, file_id, 0, speed,)
+                cur.execute('INSERT INTO photos VALUES (?,?,?,?,?,?,?,?)', photoinfo)
+                cur.close()
+                conn.commit()
 
-        do_something(s, camera)
+                s.enter(30, 1, take_photo, (sc, camera))
+
+            take_photo(s, camera)
+            s.run()
+
+
+        thread = Thread(target = thread_photos, args = (camera, ))
+        thread.start()
+
         address = ('', 8000)
         server = StreamingServer(address, StreamingHandler)
         print("About to start stream")
         server.serve_forever()
-
-        s.run()
+        thread.join()
     finally:
         camera.stop_recording()
