@@ -9,7 +9,11 @@ import driver
 from threading import Thread
 from time import sleep
 
+# For Speed
+import gpsd
+
 wall = False
+gpsd.connect()
 
 def call_at_interval(period, callback, args):
     while True:
@@ -24,13 +28,18 @@ def send_distance():
     # ignore random big readings
     if d < 2000:
         wall = d < 50
-        print("w: %s tf: %s" % (wall, driver.trav_fwd))
+        print("w: %s forward?: %s" % (wall, driver.trav_fwd))
         server.send_message_to_all("distance:%f" % d)
         if wall and driver.trav_fwd == True:
             print("Should stop!")
             driver.reverse()
             sleep(0.5)
             driver.stop()
+
+def send_speed():
+    packet = gpsd.get_current()
+    speed = packet.speed()
+    server.send_message_to_all("speed:%f" % speed)
 
 def new_client(client, server):
     print("New client connected, id: %d" % client['id'])
@@ -64,6 +73,7 @@ server.set_fn_client_left(client_left)
 server.set_fn_message_received(message_received)
 
 setInterval(0.05, send_distance)
+setInterval(0.05, send_speed)
 
 server.run_forever()
 

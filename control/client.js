@@ -1,4 +1,4 @@
-var socketClient = new WebSocket("ws://192.168.17.239:9001");
+var socketClient = new WebSocket("ws://192.168.1.213:9001");
 socketClient.onopen = function(evt) {
 	
 	socketClient.send("Test");
@@ -45,5 +45,7 @@ socketClient.onmessage = function(event) {
 		case "distance":
 			document.getElementById("distance").innerText = data[1];
 			break;
+		case "speed":
+			document.getElementById("speed").innerText = data[1];
 	}
 };
